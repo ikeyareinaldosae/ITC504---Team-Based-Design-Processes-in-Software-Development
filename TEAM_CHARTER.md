@@ -3,20 +3,19 @@
 ## 🎯 Purpose & Mission
 - **Mission:** [Brief statement explaining why the team exists and what value it delivers]
 - **Key Objectives:**
-  - [Objective 1]
-  - [Objective 2]
-  - [Objective 3]
+  - [Assessment 1: Socio-Technical System Design Blueprint]
+  - [Assessment 2: Integrated Software Solution, Verification & Professional Reflection]
 
 ---
 
 ## 👥 Members & Roles
 | Name | Role | Core Responsibilities | GitHub Handle |
 | :--- | :--- | :--- | :--- |
-| **[Reinaldo]** | Project Lead | Overall direction, stakeholder comms | `[@[handle]](https://github.com/ikeyareinaldosae)` |
-| **[Avishek]** | ... | Architecture, code reviews, technical strategy | `[@[handle]](https://github.com/1036025-hub)` |
-| **[Prakash]** | ... | Feature implementation, unit testing | `[@[handle]](https://github.com/1036126-prakash)` |
-| **[Chandani]** | ... | Feature implementation, unit testing | `[@[handle]](https://github.com/coding1035919-spec)` |
-| **[Rose]** | ... | Feature implementation, unit testing | `[@[handle]](https://github.com/rosess22)` |
+| **[Reinaldo]** | Project Lead | Overall direction, stakeholder comms | `<https://github.com/ikeyareinaldosae>` |
+| **[Avishek]** | ... | Architecture, code reviews, technical strategy | `<https://github.com/1036025-hub>` |
+| **[Prakash]** | ... | Feature implementation, unit testing | `<https://github.com/1036126-prakash>` |
+| **[Chandani]** | ... | Feature implementation, unit testing | `<https://github.com/coding1035919-spec>` |
+| **[Rose]** | ... | Feature implementation, unit testing | `<https://github.com/rosess22>` |
 
 ---
 
