@@ -43,7 +43,8 @@
 
 ### 2. Pull Requests (PRs)
 * Keep PRs small and focused (< 400 lines changed preferred).
-* Every PR requires **[1 or 2]** approved reviews before merging.
+* The Admin creates the file via Pull Request, and at least one teammate
+reviews and approves it to merge into main!
 * Link relevant GitHub issues in the description using keywords (e.g., `Closes #12`).
 
 ### 3. Issue Management
