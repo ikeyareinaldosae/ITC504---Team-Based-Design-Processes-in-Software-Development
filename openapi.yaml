@@ -1,0 +1,669 @@
+openapi: 3.0.3
+
+info:
+  title: Movie Performance Management System API
+  version: 1.0.0
+  description: |
+    REST API for managing movies, recording weekly revenue,
+    generating reports, analysing revenue trends, and supporting
+    management decisions on movie screenings.
+
+    All monetary values are in Australian dollars (AUD).
+    Authentication is optional by default.
+    Deployments outside local development should use HTTPS.
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local development server
+
+tags:
+  - name: Movies
+  - name: Performance
+  - name: Reports
+  - name: Management
+  - name: Authentication
+
+# Authentication is optional by default.
+# If login is implemented as a mandatory feature, remove the
+# empty security option so that bearer authentication is required.
+security:
+  - {}
+  - bearerAuth: []
+
+paths:
+
+  /movies:
+    get:
+      tags:
+        - Movies
+      summary: Retrieve all movies
+      responses:
+        '200':
+          description: List of movies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Movie'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    post:
+      tags:
+        - Movies
+      summary: Create a movie
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovieCreateRequest'
+      responses:
+        '201':
+          description: Movie created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movie'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /movies/{movieId}:
+    get:
+      tags:
+        - Movies
+      summary: Retrieve a movie by ID
+      parameters:
+        - $ref: '#/components/parameters/MovieId'
+      responses:
+        '200':
+          description: Movie details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movie'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /performance:
+    post:
+      tags:
+        - Performance
+      summary: Record weekly revenue performance
+      description: |
+        Records the revenue for one movie in one reporting week.
+        Only one performance record is allowed per movie per week.
+        A duplicate entry returns 409 Conflict.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PerformanceRecordCreate'
+      responses:
+        '201':
+          description: Performance record created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceRecord'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /performance/{recordId}:
+    put:
+      tags:
+        - Performance
+      summary: Update a performance record
+      description: Corrects an existing performance record.
+      parameters:
+        - $ref: '#/components/parameters/RecordId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PerformanceRecordUpdate'
+      responses:
+        '200':
+          description: Performance record updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceRecord'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    delete:
+      tags:
+        - Performance
+      summary: Delete a performance record
+      parameters:
+        - $ref: '#/components/parameters/RecordId'
+      responses:
+        '204':
+          description: Performance record deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /reports/weeks:
+    get:
+      tags:
+        - Reports
+      summary: Retrieve available reporting weeks
+      responses:
+        '200':
+          description: Available reporting weeks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: date
+                  description: Monday date in ISO 8601 format
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /reports/weekly:
+    get:
+      tags:
+        - Reports
+      summary: Generate a weekly performance report
+      parameters:
+        - name: weekStart
+          in: query
+          required: true
+          description: Monday date identifying the reporting week.
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Weekly performance report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeeklyReport'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /reports/charts/revenue-trend:
+    get:
+      tags:
+        - Reports
+      summary: Retrieve revenue trend chart data
+      description: Returns revenue per movie across several weeks. Use movieId to limit the result to one movie.
+      parameters:
+        - name: movieId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Revenue trend data for charts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevenueTrend'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /management/review-flags:
+    get:
+      tags:
+        - Management
+      summary: Retrieve movies flagged for management review
+      description: |
+        A movie is flagged when its weekly revenue is below
+        minRevenue or falls by the specified dropPercent
+        compared with the previous week.
+
+        If either threshold is omitted, the server uses its
+        configured default. The agreed threshold values remain
+        subject to confirmation.
+      parameters:
+        - name: weekStart
+          in: query
+          required: true
+          description: Monday date identifying the reporting week.
+          schema:
+            type: string
+            format: date
+        - name: minRevenue
+          in: query
+          required: false
+          description: Minimum acceptable weekly revenue in AUD. Defaults are set by the server.
+          schema:
+            type: number
+            format: double
+            minimum: 0
+            multipleOf: 0.01
+        - name: dropPercent
+          in: query
+          required: false
+          description: Percentage drop from the previous week's revenue that triggers a review. Defaults are set by the server.
+          schema:
+            type: number
+            format: double
+            minimum: 0
+            maximum: 100
+      responses:
+        '200':
+          description: Movies requiring management review
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReviewFlag'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /movies/{movieId}/screening/extend:
+    post:
+      tags:
+        - Management
+      summary: Extend a movie screening
+      description: Returns 409 Conflict if the screening has already ended.
+      parameters:
+        - $ref: '#/components/parameters/MovieId'
+      responses:
+        '200':
+          description: Movie screening extended
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScreeningActionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /movies/{movieId}/screening/end:
+    post:
+      tags:
+        - Management
+      summary: End a movie screening
+      parameters:
+        - $ref: '#/components/parameters/MovieId'
+      responses:
+        '200':
+          description: Movie screening ended
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScreeningActionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Authenticate a user
+      description: Optional login feature.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    MovieId:
+      name: movieId
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+
+    RecordId:
+      name: recordId
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+
+  responses:
+    BadRequest:
+      description: Invalid request or validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Missing, invalid or expired authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Requested resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Conflict:
+      description: >-
+        The request clashes with the current state: a duplicate performance
+        record for the same movie and week, or extending a screening that has ended
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ServerError:
+      description: Unexpected internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: BAD_REQUEST
+        message:
+          type: string
+          example: weekStart is required.
+
+    Movie:
+      type: object
+      properties:
+        movieId:
+          type: integer
+          example: 101
+        title:
+          type: string
+          example: Dune Part Two
+        genre:
+          type: string
+          example: Sci-Fi
+        releaseDate:
+          type: string
+          format: date
+          example: '2024-03-01'
+        screeningStatus:
+          type: string
+          enum:
+            - active
+            - extended
+            - ended
+          example: active
+
+    MovieCreateRequest:
+      type: object
+      required:
+        - title
+        - genre
+        - releaseDate
+      properties:
+        title:
+          type: string
+          example: Dune Part Two
+        genre:
+          type: string
+          example: Sci-Fi
+        releaseDate:
+          type: string
+          format: date
+          example: '2024-03-01'
+
+    PerformanceRecordCreate:
+      type: object
+      required:
+        - movieId
+        - weekStart
+        - revenue
+      properties:
+        movieId:
+          type: integer
+          minimum: 1
+          example: 101
+        weekStart:
+          type: string
+          format: date
+          description: Monday date identifying the reporting week.
+          example: '2026-10-12'
+        revenue:
+          type: number
+          format: double
+          minimum: 0
+          multipleOf: 0.01
+          description: Weekly revenue in Australian dollars (AUD).
+          example: 12500.50
+
+    PerformanceRecordUpdate:
+      type: object
+      required:
+        - revenue
+      properties:
+        revenue:
+          type: number
+          format: double
+          minimum: 0
+          multipleOf: 0.01
+          description: Corrected weekly revenue in AUD.
+          example: 13000.00
+
+    PerformanceRecord:
+      type: object
+      properties:
+        recordId:
+          type: integer
+          example: 1
+        movieId:
+          type: integer
+          example: 101
+        weekStart:
+          type: string
+          format: date
+          example: '2026-10-12'
+        revenue:
+          type: number
+          format: double
+          minimum: 0
+          multipleOf: 0.01
+          description: Weekly revenue in AUD.
+          example: 12500.50
+
+    WeeklyReport:
+      type: object
+      properties:
+        weekStart:
+          type: string
+          format: date
+          example: '2026-10-12'
+        totalRevenue:
+          type: number
+          format: double
+          minimum: 0
+          multipleOf: 0.01
+          description: Total weekly revenue in AUD.
+          example: 45000.75
+        movies:
+          type: array
+          items:
+            $ref: '#/components/schemas/MovieRevenue'
+
+    MovieRevenue:
+      type: object
+      properties:
+        movieId:
+          type: integer
+        title:
+          type: string
+        revenue:
+          type: number
+          format: double
+          minimum: 0
+          multipleOf: 0.01
+          description: Weekly revenue in AUD.
+
+    RevenueTrend:
+      type: array
+      items:
+        type: object
+        properties:
+          movieId:
+            type: integer
+          title:
+            type: string
+          chartPoints:
+            type: array
+            items:
+              $ref: '#/components/schemas/TrendPoint'
+
+    TrendPoint:
+      type: object
+      properties:
+        weekStart:
+          type: string
+          format: date
+          description: Monday date identifying the reporting week.
+        revenue:
+          type: number
+          format: double
+          minimum: 0
+          multipleOf: 0.01
+          description: Weekly revenue in AUD.
+
+    ReviewFlag:
+      type: object
+      properties:
+        movieId:
+          type: integer
+        title:
+          type: string
+        revenue:
+          type: number
+          format: double
+          minimum: 0
+          multipleOf: 0.01
+          description: Weekly revenue in AUD.
+        reason:
+          type: string
+          example: Revenue fell below the minimum threshold.
+
+    ScreeningActionResponse:
+      type: object
+      properties:
+        movieId:
+          type: integer
+        screeningStatus:
+          type: string
+          enum:
+            - active
+            - extended
+            - ended
+        message:
+          type: string
+
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: employee01
+        password:
+          type: string
+          format: password
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Bearer authentication token.
+        expiresIn:
+          type: integer
+          description: Token expiry time in seconds.
+          example: 3600
