@@ -56,4 +56,4 @@ reviews and approves it to merge into main!
 ## ⚡ Conflict Resolution
 1. **Direct Discussion:** Address the issue 1-on-1 constructively.
 2. **Team Level:** Bring technical disagreements to GitHub Discussions or a team sync to evaluate trade-offs objectively.
-3. **Escalation:** Consult the Project/Tech Lead for a final decision if consensus cannot be reached.
+3. **Escalation:** Consult the Project/Tech Lead for a final decision if consensus can be reached.
