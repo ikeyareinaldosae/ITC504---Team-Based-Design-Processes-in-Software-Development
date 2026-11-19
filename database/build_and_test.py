@@ -45,6 +45,14 @@ check("ended movie never flagged", "Grandma's Gold" not in {r[0] for r in db.exe
 check("gap week has no previous revenue", db.execute("select previousRevenue from v_weekly_report where weekStart='2026-10-12' and title='Southern Cross'").fetchone()[0] == 9400)
 db.execute("DELETE FROM movies WHERE movieId=8")
 check("deleting a movie cascades its records", db.execute("select count(*) from performance where movieId=8").fetchone()[0] == 0); db.rollback()
+# Q14 and Q15 (movie update and delete)
+db.execute("UPDATE movies SET title=:title, genre=:genre, releaseDate=:releaseDate WHERE movieId=:movieId", dict(title="Renamed Film", genre="Drama", releaseDate="2026-10-01", movieId=8))
+check("movie update changes the title", db.execute("select title from movies where movieId=8").fetchone()[0] == "Renamed Film"); db.rollback()
+rejects("movie update to an existing title rejected", "UPDATE movies SET title='Coral Kingdom' WHERE movieId=8")
+cur = db.execute("DELETE FROM movies WHERE movieId=99")
+check("deleting an unknown movie changes no row", cur.rowcount == 0)
+db.execute("DELETE FROM movies WHERE movieId=1")
+check("movie delete (Q15) removes its records", db.execute("select count(*) from performance where movieId=1").fetchone()[0] == 0); db.rollback()
 # run every query in queries.sql to confirm it parses and executes
 import re
 params = dict(ticketsSold=420, screenings=18, movieId=1, title="Test Film", genre="Drama", releaseDate="2026-10-01", weekStart="2026-10-12",
@@ -54,6 +62,7 @@ for q in [s.strip() for s in open(os.path.join(here, "queries.sql")).read().spli
     if not sql: continue
     p = dict(params)
     if sql.startswith("INSERT INTO performance"): p.update(movieId=8, weekStart="2026-10-19")
+    if sql.startswith("UPDATE movies SET title"): p.update(movieId=8, title="Renamed Test Film")
     used = {k: v for k, v in p.items() if ":" + k in sql}
     try: db.execute(sql, used); check("query runs: " + sql[:45].replace("\n", " "), True)
     except Exception as e: check("query runs: %s (%s)" % (sql[:45], e), False)

@@ -55,3 +55,9 @@ WHERE movieId = :movieId AND screeningStatus <> 'ended';
 
 -- Q13 End screening (POST /movies/{movieId}/screening/end)
 UPDATE movies SET screeningStatus = 'ended' WHERE movieId = :movieId;
+
+-- Q14 Update a movie (PUT /movies/{movieId}, proposed). A UNIQUE violation on title means 409.
+UPDATE movies SET title = :title, genre = :genre, releaseDate = :releaseDate WHERE movieId = :movieId;
+
+-- Q15 Delete a movie and, through ON DELETE CASCADE, its records (DELETE /movies/{movieId}, proposed)
+DELETE FROM movies WHERE movieId = :movieId;
