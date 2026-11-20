@@ -8,7 +8,7 @@ This package contains the relational database for the Movie Performance Manageme
 |---|---|
 | `schema.sql` | Tables, rules, indexes, and views. |
 | `seed.sql` | Dummy data: 8 movies and 39 weekly records (with tickets and screenings) (weeks 2026-09-07 to 2026-10-12). |
-| `queries.sql` | One tested query for each API operation, with `:name` parameters. |
+| `queries.sql` | One tested query for each API operation (Q1 to Q15), with `:name` parameters. Q14 and Q15 support the proposed movie update and delete. |
 | `build_and_test.py` | Rebuilds `movies.db` and runs the constraint and query tests. |
 | `movies.db` | The ready-made database file. |
 
