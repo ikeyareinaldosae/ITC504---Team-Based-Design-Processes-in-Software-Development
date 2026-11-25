@@ -1,0 +1,74 @@
+// Movie Performance Management System: database schema (PostgreSQL via Prisma).
+// Owner: Rose Budha. Field names use camelCase to match openapi.yaml.
+// Money is AUD with at most two decimal places. A week is its Monday (a DATE).
+//
+// Rules Prisma cannot describe (CHECK constraints, the calculated isoWeek column, the
+// two report views, case-insensitive unique names) live in the migration SQL file:
+// prisma/migrations/20261123000000_init/migration.sql
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ScreeningStatus {
+  active
+  extended
+  ended
+}
+
+enum Role {
+  employee
+  manager
+}
+
+model Movie {
+  movieId         Int             @id @default(autoincrement())
+  title           String
+  genre           String?
+  releaseDate     DateTime?       @db.Date
+  screeningStatus ScreeningStatus @default(active)
+  extendedWeeks   Int             @default(0)
+  performance     Performance[]
+
+  @@map("movies")
+}
+
+model Performance {
+  recordId    Int      @id @default(autoincrement())
+  movieId     Int
+  weekStart   DateTime @db.Date
+  revenue     Decimal  @db.Decimal
+  ticketsSold Int?
+  screenings  Int?
+  // ISO week label such as 2026-W40. Calculated by the database from weekStart.
+  isoWeek     String?  @default(dbgenerated())
+  movie       Movie    @relation(fields: [movieId], references: [movieId], onDelete: Cascade)
+
+  @@unique([movieId, weekStart])
+  @@index([weekStart])
+  @@index([isoWeek])
+  @@map("performance")
+}
+
+// Review rule values (minRevenue, dropPercent). Defaults are placeholders until the team confirms them.
+model Setting {
+  name  String  @id
+  value Decimal @db.Decimal
+
+  @@map("settings")
+}
+
+// Optional login feature (not enforced in contract v1.0.0). Store a password HASH only.
+model User {
+  userId       Int    @id @default(autoincrement())
+  username     String
+  passwordHash String
+  role         Role   @default(employee)
+
+  @@map("users")
+}

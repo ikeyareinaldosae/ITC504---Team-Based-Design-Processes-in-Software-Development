@@ -1,0 +1,59 @@
+name: Database tests
+
+# Builds the PostgreSQL database, loads the dummy data and runs the 48 database tests
+# whenever the database, the repositories or the tests change.
+on:
+  push:
+    branches:
+      - main
+      - 'feat/**'
+    paths:
+      - 'database/**'
+      - 'backend/**'
+      - 'tests/integration/database.test.ts'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'database/**'
+      - 'backend/**'
+      - 'tests/integration/database.test.ts'
+
+jobs:
+  database:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: movies
+          POSTGRES_PASSWORD: movies
+          POSTGRES_DB: movies
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U movies -d movies"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://movies:movies@localhost:5432/movies
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install packages
+        run: npm ci
+
+      - name: Build database, load data and run tests
+        run: npm run test:db
