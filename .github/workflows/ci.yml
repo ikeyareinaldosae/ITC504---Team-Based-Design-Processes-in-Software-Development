@@ -106,6 +106,10 @@ jobs:
             --test-concurrency=1 \
             src/avishek/tests/services.test.ts
 
+      - name: Run API integration tests
+        working-directory: backend
+        run: npm run test:api
+
   frontend:
     name: Frontend Validation and Build
     runs-on: ubuntu-latest

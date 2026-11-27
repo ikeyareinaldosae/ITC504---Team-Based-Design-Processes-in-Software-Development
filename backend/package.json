@@ -2,22 +2,31 @@
   "name": "movie-backend",
   "version": "1.0.0",
   "private": true,
-  "description": "Backend for the Movie Performance Management System. The scripts and dependencies below are Rose's database part; Chandani adds the API packages.",
+  "description": "Backend for the Movie Performance Management System: Rose's database layer, Avishek's analytics services and Chandani's REST API.",
   "scripts": {
     "db:generate": "dotenv -e ../.env -- prisma generate --schema ../database/prisma/schema.prisma",
     "db:migrate": "dotenv -e ../.env -- prisma migrate deploy --schema ../database/prisma/schema.prisma",
     "db:seed": "dotenv -e ../.env -- tsx ../database/prisma/seed.ts",
     "db:studio": "dotenv -e ../.env -- prisma studio --schema ../database/prisma/schema.prisma",
     "pretest:db": "npm run db:generate && npm run db:migrate && npm run db:seed",
-    "test:db": "dotenv -e ../.env -- node --import tsx --test ../tests/integration/database.test.ts"
+    "test:db": "dotenv -e ../.env -- node --import tsx --test ../tests/integration/database.test.ts",
+    "dev": "dotenv -e ../.env -- tsx watch src/server.ts",
+    "start": "dotenv -e ../.env -- tsx src/server.ts",
+    "test:api": "dotenv -e ../.env -- node --import tsx --test --test-concurrency=1 ../tests/integration/movies.test.ts ../tests/integration/performance.test.ts ../tests/integration/reports.test.ts"
   },
   "dependencies": {
-    "@prisma/client": "6.19.0"
+    "@prisma/client": "6.19.0",
+    "cors": "2.8.6",
+    "express": "5.3.0"
   },
   "devDependencies": {
+    "@types/cors": "2.8.19",
+    "@types/express": "5.0.6",
     "@types/node": "22.20.5",
+    "@types/supertest": "7.2.1",
     "dotenv-cli": "10.0.0",
     "prisma": "6.19.0",
+    "supertest": "7.3.2",
     "tsx": "4.20.6",
     "typescript": "5.9.3"
   }

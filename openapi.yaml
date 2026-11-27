@@ -1,5 +1,892 @@
 openapi: 3.0.3
+
 info:
   title: Movie Performance Management System API
-  version: 0.1.0
-paths: {}
+  version: 1.1.0
+  description: |
+    REST API for managing movies, recording weekly revenue,
+    generating reports, analysing revenue trends, and supporting
+    management decisions on movie screenings.
+
+    All monetary values are in Australian dollars (AUD).
+    A reporting week is identified by its Monday date (YYYY-MM-DD).
+    Authentication is optional and is not implemented in this version.
+    Deployments outside local development should use HTTPS.
+
+    Version 1.1.0 aligns the contract with the PostgreSQL database
+    (see docs/api/api-contract-changelog.md).
+
+servers:
+  - url: http://localhost:5000/api/v1
+    description: Local development server (port 5000, agreed by the team)
+
+tags:
+  - name: Health
+    description: Checks that the API is running.
+  - name: Movies
+    description: 'Movie catalogue: list, create and view movies.'
+  - name: Performance
+    description: 'Weekly revenue records: create, correct and delete.'
+  - name: Reports
+    description: Weekly reports and chart data.
+  - name: Management
+    description: Review flags and screening decisions (extend or end).
+  - name: Authentication
+    description: Optional login, not implemented in v1.1.0.
+
+# Authentication is optional and not implemented in v1.1.0.
+# If login is built later, remove the empty security option so that
+# bearer authentication is required on every endpoint except login and health.
+security:
+  - {}
+  - bearerAuth: []
+
+paths:
+
+  /health:
+    get:
+      operationId: getHealth
+      tags:
+        - Health
+      summary: Check that the API is running
+      security: []
+      responses:
+        '200':
+          description: The API is running
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /movies:
+    get:
+      operationId: listMovies
+      tags:
+        - Movies
+      summary: Retrieve all movies
+      description: Returns every movie, sorted by title.
+      responses:
+        '200':
+          description: List of movies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Movie'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    post:
+      operationId: createMovie
+      tags:
+        - Movies
+      summary: Create a movie
+      description: |
+        Creates a movie with screening status "active".
+        Movie titles are unique, ignoring upper and lower case.
+        A title that already exists returns 409 Conflict.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovieCreateRequest'
+      responses:
+        '201':
+          description: Movie created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movie'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /movies/{movieId}:
+    get:
+      operationId: getMovie
+      tags:
+        - Movies
+      summary: Retrieve a movie by ID
+      parameters:
+        - $ref: '#/components/parameters/MovieId'
+      responses:
+        '200':
+          description: Movie details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movie'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /performance:
+    post:
+      operationId: recordPerformance
+      tags:
+        - Performance
+      summary: Record weekly revenue performance
+      description: |
+        Records the revenue for one movie in one reporting week.
+        Only one performance record is allowed per movie per week;
+        a duplicate entry returns 409 Conflict.
+        weekStart must be a Monday. Revenue must be zero or more,
+        with at most two decimal places.
+        An unknown movieId returns 404 Not Found.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PerformanceRecordCreate'
+      responses:
+        '201':
+          description: Performance record created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceRecord'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /performance/{recordId}:
+    put:
+      operationId: updatePerformance
+      tags:
+        - Performance
+      summary: Update a performance record
+      description: |
+        Corrects an existing performance record. The movie and week
+        cannot change, so a correction can never create a duplicate.
+        ticketsSold and screenings are replaced by the values sent;
+        if they are omitted they are cleared.
+      parameters:
+        - $ref: '#/components/parameters/RecordId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PerformanceRecordUpdate'
+      responses:
+        '200':
+          description: Performance record updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceRecord'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    delete:
+      operationId: deletePerformance
+      tags:
+        - Performance
+      summary: Delete a performance record
+      parameters:
+        - $ref: '#/components/parameters/RecordId'
+      responses:
+        '204':
+          description: Performance record deleted
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /reports/weeks:
+    get:
+      operationId: listReportWeeks
+      tags:
+        - Reports
+      summary: Retrieve available reporting weeks
+      description: Returns the Monday dates that hold data, newest first.
+      responses:
+        '200':
+          description: Available reporting weeks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: date
+                  description: Monday date in ISO 8601 format
+                example:
+                  - '2026-10-12'
+                  - '2026-10-05'
+                  - '2026-09-28'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /reports/weekly:
+    get:
+      operationId: getWeeklyReport
+      tags:
+        - Reports
+      summary: Generate a weekly performance report
+      description: |
+        Returns every movie with a record in the chosen week, sorted by
+        revenue (highest first), with the change from the previous week.
+        A week with no data returns totalRevenue 0 and an empty list.
+      parameters:
+        - $ref: '#/components/parameters/WeekStartQuery'
+      responses:
+        '200':
+          description: Weekly performance report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeeklyReport'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /reports/charts/revenue-trend:
+    get:
+      operationId: getRevenueTrend
+      tags:
+        - Reports
+      summary: Retrieve revenue trend chart data
+      description: |
+        Returns weekly revenue per movie across all weeks that hold data,
+        in date order. Use movieId to limit the result to one movie.
+      parameters:
+        - name: movieId
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Revenue trend data for charts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevenueTrend'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /management/review-flags:
+    get:
+      operationId: getReviewFlags
+      tags:
+        - Management
+      summary: Retrieve movies flagged for management review
+      description: |
+        A movie is flagged for the chosen week when either:
+        - its revenue is below minRevenue (reason BELOW_MIN_REVENUE), or
+        - its revenue fell by dropPercent or more compared with the
+          previous week (reason SHARP_DROP).
+
+        Movies whose screening has ended are never flagged.
+        A movie with no record for the previous week is checked
+        against minRevenue only.
+
+        If a threshold is omitted, the server default is used
+        (minRevenue 5000 AUD, dropPercent 30). These defaults are
+        placeholders until confirmed by the team.
+      parameters:
+        - $ref: '#/components/parameters/WeekStartQuery'
+        - name: minRevenue
+          in: query
+          required: false
+          description: Minimum acceptable weekly revenue in AUD. Default 5000.
+          schema:
+            type: number
+            format: double
+            minimum: 0
+            multipleOf: 0.01
+        - name: dropPercent
+          in: query
+          required: false
+          description: Percentage drop from the previous week that triggers a review. Default 30.
+          schema:
+            type: number
+            format: double
+            minimum: 0
+            maximum: 100
+      responses:
+        '200':
+          description: Movies requiring management review
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReviewFlag'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /movies/{movieId}/screening/extend:
+    post:
+      operationId: extendScreening
+      tags:
+        - Management
+      summary: Extend a movie screening
+      description: |
+        Sets the screening status to "extended" and adds the given
+        number of weeks to extendedWeeks (default 1).
+        Returns 409 Conflict if the screening has already ended.
+      parameters:
+        - $ref: '#/components/parameters/MovieId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExtendScreeningRequest'
+      responses:
+        '200':
+          description: Movie screening extended
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScreeningActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /movies/{movieId}/screening/end:
+    post:
+      operationId: endScreening
+      tags:
+        - Management
+      summary: End a movie screening
+      description: Sets the screening status to "ended".
+      parameters:
+        - $ref: '#/components/parameters/MovieId'
+      responses:
+        '200':
+          description: Movie screening ended
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScreeningActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /auth/login:
+    post:
+      operationId: login
+      tags:
+        - Authentication
+      summary: Authenticate a user (not implemented in v1.1.0)
+      description: |
+        Optional login feature. Not implemented in version 1.1.0;
+        kept in the contract so it can be added later without a
+        breaking change. The users table already exists in the database.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    MovieId:
+      name: movieId
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+
+    RecordId:
+      name: recordId
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+
+    WeekStartQuery:
+      name: weekStart
+      in: query
+      required: true
+      description: Monday date identifying the reporting week (YYYY-MM-DD).
+      schema:
+        type: string
+        format: date
+        example: '2026-10-12'
+
+  responses:
+    BadRequest:
+      description: Invalid request or validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: BAD_REQUEST
+            message: weekStart must be a Monday.
+
+    Unauthorized:
+      description: Missing, invalid or expired authentication token (only if login is built)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: UNAUTHORIZED
+            message: A valid token is required.
+
+    NotFound:
+      description: Requested resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: NOT_FOUND
+            message: Movie 999 was not found.
+
+    Conflict:
+      description: >-
+        The request clashes with the current state: a duplicate performance
+        record for the same movie and week, a movie title that already exists,
+        or extending a screening that has ended
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: CONFLICT
+            message: A record for this movie and week already exists.
+
+    ServerError:
+      description: Unexpected internal server error (details are logged, never returned)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: SERVER_ERROR
+            message: Something went wrong. Please try again.
+
+  schemas:
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          enum:
+            - BAD_REQUEST
+            - UNAUTHORIZED
+            - NOT_FOUND
+            - CONFLICT
+            - SERVER_ERROR
+          example: BAD_REQUEST
+        message:
+          type: string
+          example: weekStart is required.
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+
+    ScreeningStatus:
+      type: string
+      enum:
+        - active
+        - extended
+        - ended
+      example: active
+
+    Movie:
+      type: object
+      properties:
+        movieId:
+          type: integer
+          example: 2
+        title:
+          type: string
+          example: Coral Kingdom
+        genre:
+          type: string
+          nullable: true
+          example: Animation
+        releaseDate:
+          type: string
+          format: date
+          nullable: true
+          example: '2026-08-27'
+        screeningStatus:
+          $ref: '#/components/schemas/ScreeningStatus'
+        extendedWeeks:
+          type: integer
+          minimum: 0
+          description: Number of weeks the screening has been extended.
+          example: 0
+
+    MovieCreateRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+          description: Must not be blank; unique ignoring letter case.
+          example: Coral Kingdom
+        genre:
+          type: string
+          nullable: true
+          example: Animation
+        releaseDate:
+          type: string
+          format: date
+          nullable: true
+          example: '2026-08-27'
+
+    PerformanceRecordCreate:
+      type: object
+      required:
+        - movieId
+        - weekStart
+        - revenue
+      properties:
+        movieId:
+          type: integer
+          minimum: 1
+          example: 8
+        weekStart:
+          type: string
+          format: date
+          description: Monday date identifying the reporting week.
+          example: '2026-10-19'
+        revenue:
+          type: number
+          format: double
+          minimum: 0
+          multipleOf: 0.01
+          description: Weekly revenue in Australian dollars (AUD).
+          example: 1234.56
+        ticketsSold:
+          type: integer
+          minimum: 0
+          nullable: true
+          description: Optional number of tickets sold that week.
+          example: 74
+        screenings:
+          type: integer
+          minimum: 0
+          nullable: true
+          description: Optional number of screenings that week.
+          example: 3
+
+    PerformanceRecordUpdate:
+      type: object
+      required:
+        - revenue
+      properties:
+        revenue:
+          type: number
+          format: double
+          minimum: 0
+          multipleOf: 0.01
+          description: Corrected weekly revenue in AUD.
+          example: 1300.00
+        ticketsSold:
+          type: integer
+          minimum: 0
+          nullable: true
+        screenings:
+          type: integer
+          minimum: 0
+          nullable: true
+
+    PerformanceRecord:
+      type: object
+      properties:
+        recordId:
+          type: integer
+          example: 40
+        movieId:
+          type: integer
+          example: 8
+        weekStart:
+          type: string
+          format: date
+          example: '2026-10-19'
+        isoWeek:
+          type: string
+          description: ISO week label calculated from weekStart.
+          example: 2026-W43
+        revenue:
+          type: number
+          format: double
+          minimum: 0
+          multipleOf: 0.01
+          description: Weekly revenue in AUD.
+          example: 1234.56
+        ticketsSold:
+          type: integer
+          nullable: true
+          example: 74
+        screenings:
+          type: integer
+          nullable: true
+          example: 3
+
+    WeeklyReport:
+      type: object
+      properties:
+        weekStart:
+          type: string
+          format: date
+          example: '2026-10-12'
+        totalRevenue:
+          type: number
+          format: double
+          minimum: 0
+          multipleOf: 0.01
+          description: Total weekly revenue in AUD (0 when the week has no data).
+          example: 159550.00
+        bestMovie:
+          type: string
+          nullable: true
+          description: Title of the movie with the highest revenue that week.
+          example: Coral Kingdom
+        movies:
+          type: array
+          items:
+            $ref: '#/components/schemas/MovieRevenue'
+
+    MovieRevenue:
+      type: object
+      properties:
+        movieId:
+          type: integer
+          example: 6
+        title:
+          type: string
+          example: Neon Static
+        revenue:
+          type: number
+          format: double
+          minimum: 0
+          multipleOf: 0.01
+          description: Weekly revenue in AUD.
+          example: 5100.00
+        previousRevenue:
+          type: number
+          format: double
+          nullable: true
+          description: Revenue in the previous week (null if there is no record 7 days earlier).
+          example: 12950.00
+        difference:
+          type: number
+          format: double
+          nullable: true
+          description: revenue minus previousRevenue (null if no previous week).
+          example: -7850.00
+        percentChange:
+          type: number
+          format: double
+          nullable: true
+          description: Percentage change from the previous week, one decimal place (null if no previous week).
+          example: -60.6
+        ticketsSold:
+          type: integer
+          nullable: true
+        screenings:
+          type: integer
+          nullable: true
+        screeningStatus:
+          $ref: '#/components/schemas/ScreeningStatus'
+
+    RevenueTrend:
+      type: array
+      items:
+        type: object
+        properties:
+          movieId:
+            type: integer
+          title:
+            type: string
+          chartPoints:
+            type: array
+            items:
+              $ref: '#/components/schemas/TrendPoint'
+
+    TrendPoint:
+      type: object
+      properties:
+        weekStart:
+          type: string
+          format: date
+          description: Monday date identifying the reporting week.
+        revenue:
+          type: number
+          format: double
+          minimum: 0
+          multipleOf: 0.01
+          description: Weekly revenue in AUD.
+
+    ReviewFlag:
+      type: object
+      properties:
+        movieId:
+          type: integer
+          example: 6
+        title:
+          type: string
+          example: Neon Static
+        revenue:
+          type: number
+          format: double
+          minimum: 0
+          multipleOf: 0.01
+          description: Weekly revenue in AUD.
+          example: 5100.00
+        previousRevenue:
+          type: number
+          format: double
+          nullable: true
+          example: 12950.00
+        percentChange:
+          type: number
+          format: double
+          nullable: true
+          example: -60.6
+        reason:
+          type: string
+          enum:
+            - BELOW_MIN_REVENUE
+            - SHARP_DROP
+          description: BELOW_MIN_REVENUE takes priority when both apply.
+          example: SHARP_DROP
+
+    ExtendScreeningRequest:
+      type: object
+      properties:
+        weeks:
+          type: integer
+          minimum: 1
+          default: 1
+          description: Number of weeks to add to the screening.
+          example: 2
+
+    ScreeningActionResponse:
+      description: The updated movie, plus a short confirmation message.
+      allOf:
+        - $ref: '#/components/schemas/Movie'
+        - type: object
+          properties:
+            message:
+              type: string
+              example: Screening extended by 2 weeks.
+
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: employee01
+        password:
+          type: string
+          format: password
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Bearer authentication token.
+        expiresIn:
+          type: integer
+          description: Token expiry time in seconds.
+          example: 3600
