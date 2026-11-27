@@ -1,0 +1,167 @@
+name: Movie Performance Management System CI
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  backend:
+    name: Backend and Database Testing
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: movies
+          POSTGRES_PASSWORD: movies
+          POSTGRES_DB: movies
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U movies -d movies"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://movies:movies@localhost:5432/movies
+      NODE_ENV: test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Create test environment file
+        run: |
+          echo "DATABASE_URL=$DATABASE_URL" > .env
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Generate Prisma client
+        working-directory: backend
+        run: npm run db:generate
+
+      - name: Apply database migrations
+        working-directory: backend
+        run: npm run db:migrate
+
+      - name: Seed test database
+        working-directory: backend
+        run: npm run db:seed
+
+      - name: Backend TypeScript validation
+        working-directory: backend
+        run: npx tsc --noEmit
+
+      - name: Run database integration tests
+        working-directory: backend
+        run: npm run test:db
+
+      - name: Run analytics utility tests
+        working-directory: backend
+        run: |
+          npx dotenv -e ../.env -- node --import tsx --test \
+            src/avishek/tests/utilities.test.ts
+
+      - name: Run analytics processor tests
+        working-directory: backend
+        run: |
+          npx dotenv -e ../.env -- node --import tsx --test \
+            src/avishek/tests/processors.test.ts
+
+      - name: Run live analytics integration tests
+        working-directory: backend
+        run: |
+          npx dotenv -e ../.env -- node --import tsx --test \
+            src/avishek/tests/liveAnalytics.test.ts
+
+      - name: Run analytics service tests
+        working-directory: backend
+        run: |
+          npx dotenv -e ../.env -- node --import tsx --test \
+            --test-concurrency=1 \
+            src/avishek/tests/services.test.ts
+
+  frontend:
+    name: Frontend Validation and Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Frontend TypeScript validation
+        working-directory: frontend
+        run: npx tsc --noEmit
+
+      - name: Build frontend application
+        working-directory: frontend
+        run: npm run build
+
+      - name: Upload frontend build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/dist/
+          retention-days: 7
+
+  integration-status:
+    name: CI Final Status
+    runs-on: ubuntu-latest
+    needs:
+      - backend
+      - frontend
+    if: always()
+
+    steps:
+      - name: Verify all CI jobs
+        env:
+          BACKEND_RESULT: ${{ needs.backend.result }}
+          FRONTEND_RESULT: ${{ needs.frontend.result }}
+        run: |
+          echo "Backend result: $BACKEND_RESULT"
+          echo "Frontend result: $FRONTEND_RESULT"
+
+          if [ "$BACKEND_RESULT" != "success" ] || \
+             [ "$FRONTEND_RESULT" != "success" ]; then
+            echo "Continuous integration failed."
+            exit 1
+          fi
+
+          echo "All continuous integration checks passed."
