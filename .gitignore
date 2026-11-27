@@ -1,0 +1,18 @@
+# Dependencies (installed with npm install, never committed)
+node_modules/
+
+# Local settings and secrets (copy .env.example to .env)
+.env
+
+# Build output and logs
+dist/
+build/
+*.log
+
+# Local SQLite file from the old database version
+database/movies.db
+
+# Editor and operating system files
+.vscode/
+.DS_Store
+Thumbs.db
