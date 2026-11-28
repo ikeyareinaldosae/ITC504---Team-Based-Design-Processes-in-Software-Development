@@ -1,0 +1,133 @@
+/* Revenue chart card */
+.av-chart-card {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+  padding: 24px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.2s ease;
+}
+
+.av-chart-card:hover {
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+/* Chart header */
+.av-chart-header {
+  margin-bottom: 24px;
+}
+
+.av-chart-title {
+  margin: 0 0 6px;
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.av-chart-subtitle {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Responsive chart container */
+.av-chart-container {
+  width: 100%;
+  min-width: 0;
+  overflow: visible;
+}
+
+.av-chart-container .recharts-tooltip-wrapper {
+  pointer-events: none;
+  z-index: 20;
+}
+
+.av-chart-container .recharts-responsive-container {
+  min-width: 0;
+}
+
+/* Chart legend */
+.av-chart-legend {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  padding-top: 18px;
+  margin-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.av-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.av-legend-dot {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+  border-radius: 3px;
+}
+
+/* Loading and empty states */
+.av-chart-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 280px;
+  padding: 20px;
+  color: #64748b;
+  background-color: #f8fafc;
+  border: 1px dashed #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Error state */
+.av-chart-error {
+  color: #b91c1c;
+  background-color: #fef2f2;
+  border-color: #fecaca;
+}
+
+/* Tablet layout */
+@media (max-width: 1024px) {
+  .av-chart-card {
+    padding: 20px;
+  }
+}
+
+/* Mobile layout */
+@media (max-width: 600px) {
+  .av-chart-card {
+    padding: 16px;
+  }
+
+  .av-chart-title {
+    font-size: 16px;
+  }
+
+  .av-chart-header {
+    margin-bottom: 16px;
+  }
+
+  .av-chart-legend {
+    gap: 12px;
+  }
+
+  .av-chart-message {
+    min-height: 220px;
+  }
+}

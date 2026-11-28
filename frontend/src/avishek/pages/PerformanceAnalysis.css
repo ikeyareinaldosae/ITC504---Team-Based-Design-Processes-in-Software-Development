@@ -1,0 +1,221 @@
+/* Individual movie performance summary */
+.av-analysis-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+/* Performance summary cards */
+.av-analysis-card {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.2s ease;
+}
+
+.av-analysis-card:hover {
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.av-analysis-card h3 {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.av-analysis-card strong {
+  display: block;
+  color: #0f172a;
+  font-size: clamp(20px, 2vw, 28px);
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+.av-analysis-card p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.av-analysis-card span {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Performance change indicators */
+.av-analysis-change-positive {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.av-analysis-change-negative {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.av-analysis-change-neutral {
+  color: #475569;
+  font-weight: 500;
+}
+
+.av-analysis-change-unavailable {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+/* Historical performance table card */
+.av-analysis-history-card {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+}
+
+/* Restrict horizontal scrolling to the table */
+.av-analysis-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+/* Weekly performance history table */
+.av-analysis-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.av-analysis-table thead {
+  background: #f8fafc;
+}
+
+.av-analysis-table th {
+  padding: 16px;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.av-analysis-table td {
+  padding: 16px;
+  color: #334155;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.av-analysis-table th:first-child,
+.av-analysis-table td:first-child {
+  text-align: left;
+}
+
+.av-analysis-table td:first-child {
+  color: #0f172a;
+  font-weight: 500;
+}
+
+.av-analysis-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.av-analysis-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Preserve change colours inside table cells */
+.av-analysis-table td.av-analysis-change-positive {
+  color: #15803d;
+}
+
+.av-analysis-table td.av-analysis-change-negative {
+  color: #dc2626;
+}
+
+.av-analysis-table td.av-analysis-change-neutral {
+  color: #475569;
+}
+
+.av-analysis-table td.av-analysis-change-unavailable {
+  color: #94a3b8;
+}
+
+/* Table footer */
+.av-analysis-history-footer {
+  margin: 16px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Tablet layout */
+@media (max-width: 1200px) {
+  .av-analysis-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1024px) {
+  .av-analysis-card {
+    padding: 20px;
+  }
+
+  .av-analysis-history-card {
+    padding: 20px;
+  }
+}
+
+/* Mobile layout */
+@media (max-width: 600px) {
+  .av-analysis-summary-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .av-analysis-card {
+    padding: 18px;
+  }
+
+  .av-analysis-card strong {
+    font-size: 24px;
+  }
+
+  .av-analysis-history-card {
+    padding: 16px;
+  }
+
+  .av-analysis-table th,
+  .av-analysis-table td {
+    padding: 12px;
+    font-size: 13px;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .av-analysis-card {
+    transition: none;
+  }
+}
