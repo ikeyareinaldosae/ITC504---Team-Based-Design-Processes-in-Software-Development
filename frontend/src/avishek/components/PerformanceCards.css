@@ -1,0 +1,110 @@
+/* Performance summary grid */
+.av-performance-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+/* Individual performance card */
+.av-performance-card {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 145px;
+  padding: 22px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.2s ease;
+}
+
+.av-performance-card:hover {
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+/* Card heading */
+.av-card-label {
+  margin: 0 0 14px;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+/* Main performance value */
+.av-card-value {
+  margin: 0 0 10px;
+  color: #0f172a;
+  font-size: clamp(20px, 2vw, 28px);
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Supporting performance information */
+.av-card-description {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+/* Revenue change indicators */
+.av-change-positive {
+  color: #15803d;
+}
+
+.av-change-negative {
+  color: #dc2626;
+}
+
+.av-change-neutral {
+  color: #64748b;
+}
+
+.av-change-unavailable {
+  color: #64748b;
+}
+
+/* Loading and empty data messages */
+.av-cards-message {
+  padding: 24px;
+  margin-bottom: 24px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  color: #64748b;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Error message */
+.av-cards-error {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+/* Tablet and smaller desktop screens */
+@media (max-width: 1200px) {
+  .av-performance-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Mobile screens */
+@media (max-width: 600px) {
+  .av-performance-cards {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .av-performance-card {
+    padding: 18px;
+    min-height: 120px;
+  }
+}

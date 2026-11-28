@@ -1,0 +1,358 @@
+/* Management review card */
+.av-review-card {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 24px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+}
+
+/* Review header */
+.av-review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.av-review-title {
+  margin: 0 0 6px;
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.av-review-subtitle {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Flag count */
+.av-review-count {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.av-review-count-warning {
+  color: #92400e;
+  background-color: #fef3c7;
+}
+
+.av-review-count-success {
+  color: #15803d;
+  background-color: #dcfce7;
+}
+
+/* Flagged movie list */
+.av-review-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* Individual review card */
+.av-review-item {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid;
+  border-radius: 10px;
+  background-color: #ffffff;
+  transition: box-shadow 0.2s ease;
+}
+
+.av-review-item:hover {
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.av-review-item-decline {
+  border-left-color: #dc2626;
+}
+
+.av-review-item-low {
+  border-left-color: #d97706;
+}
+
+/* Movie information */
+.av-review-item-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.av-review-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.av-review-movie {
+  margin: 0 0 6px;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* Review icons */
+.av-review-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.av-review-icon-decline {
+  color: #dc2626;
+  background-color: #fef2f2;
+}
+
+.av-review-icon-low {
+  color: #b45309;
+  background-color: #fff7ed;
+}
+
+/* Review reasons */
+.av-review-reason {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.av-review-reason-decline {
+  color: #b91c1c;
+}
+
+.av-review-reason-low {
+  color: #b45309;
+}
+
+.av-review-description {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Revenue metrics */
+.av-review-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px;
+  background-color: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+}
+
+.av-review-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.av-review-metric-label {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.av-review-metric-value {
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+/* Revenue change colours */
+.av-review-change-positive {
+  color: #15803d;
+}
+
+.av-review-change-negative {
+  color: #dc2626;
+}
+
+.av-review-change-neutral {
+  color: #64748b;
+}
+
+.av-review-change-unavailable {
+  color: #94a3b8;
+}
+
+/* Loading and error states */
+.av-review-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 180px;
+  padding: 24px;
+  background-color: #f8fafc;
+  color: #64748b;
+  border: 1px dashed #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.av-review-error {
+  color: #b91c1c;
+  background-color: #fef2f2;
+  border-color: #fecaca;
+}
+
+/* No flagged movies */
+.av-review-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  padding: 24px;
+  background-color: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.av-review-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  background-color: #dcfce7;
+  color: #15803d;
+  border-radius: 50%;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.av-review-empty h4 {
+  margin: 0 0 8px;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.av-review-empty p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Management information footer */
+.av-review-footer {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.av-review-info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: #64748b;
+  border: 1px solid #94a3b8;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.av-review-footer p {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* Smaller desktop screens */
+@media (max-width: 1200px) {
+  .av-review-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Tablet layout */
+@media (max-width: 1024px) {
+  .av-review-card {
+    padding: 20px;
+  }
+}
+
+/* Mobile layout */
+@media (max-width: 600px) {
+  .av-review-card {
+    padding: 16px;
+  }
+
+  .av-review-title {
+    font-size: 16px;
+  }
+
+  .av-review-item {
+    padding: 16px;
+  }
+
+  .av-review-metrics {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    padding: 12px;
+  }
+
+  .av-review-metric {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .av-review-metric-value {
+    font-size: 14px;
+  }
+
+  .av-review-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+  }
+}
+
+/* Reduced motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .av-review-item {
+    transition: none;
+  }
+}
